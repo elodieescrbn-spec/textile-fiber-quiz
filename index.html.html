@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧵 Textile Chemitex — Flashcards & Quiz</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #f5f0eb;
+    color: #3a2e28;
+    min-height: 100vh;
+  }
+  header {
+    background: #3a2e28;
+    color: #f5f0eb;
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  header h1 { font-size: 1.4rem; font-weight: normal; letter-spacing: 0.05em; }
+  header span { font-size: 2rem; }
+  nav {
+    background: #6b4f3a;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: #f5f0eb99;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+  }
+  nav button:hover, nav button.active {
+    color: #f5f0eb;
+    background: #5a3f2e;
+    border-bottom: 3px solid #d4a96a;
+  }
+  .mode-btns {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    flex-wrap: wrap;
+  }
+  .mode-btn {
+    background: #fff;
+    border: 2px solid #d4a96a;
+    color: #3a2e28;
+    padding: 10px 24px;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  .mode-btn:hover, .mode-btn.active {
+    background: #d4a96a;
+    color: #fff;
+  }
+  .container { max-width: 700px; margin: 0 auto; padding: 0 24px 48px; }
+
+  /* FLASHCARDS */
+  #flashcard-section { display: block; }
+  .card-counter { text-align: center; color: #6b4f3a; font-size: 0.85rem; margin-bottom: 16px; }
+  .flashcard-wrap {
+    perspective: 1000px;
+    width: 100%;
+    height: 260px;
+    cursor: pointer;
+    margin-bottom: 24px;
+  }
+  .flashcard {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(.4,0,.2,1);
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .card-face {
+    position: absolute;
+    width: 100%; height: 100%;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+    box-shadow: 0 4px 24px #3a2e2820;
+  }
+  .card-front { background: #fff; }
+  .card-back { background: #3a2e28; color: #f5f0eb; transform: rotateY(180deg); }
+  .card-front .term { font-size: 1.8rem; font-weight: bold; color: #3a2e28; margin-bottom: 8px; }
+  .card-front .en { font-size: 1rem; color: #d4a96a; font-style: italic; }
+  .card-front .hint { font-size: 0.75rem; color: #aaa; margin-top: 16px; }
+  .card-back .def { font-size: 1rem; line-height: 1.6; }
+  .card-back .cat { font-size: 0.75rem; color: #d4a96a; margin-top: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .card-nav { display: flex; justify-content: center; gap: 16px; margin-bottom: 12px; }
+  .card-nav button, .flip-btn {
+    background: #3a2e28;
+    color: #f5f0eb;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .card-nav button:hover, .flip-btn:hover { background: #6b4f3a; }
+  .flip-btn { background: #d4a96a; color: #fff; display: block; margin: 0 auto 16px; }
+  .progress-bar { background: #e0d5cc; border-radius: 8px; height: 6px; margin-bottom: 24px; }
+  .progress-fill { background: #d4a96a; height: 6px; border-radius: 8px; transition: width 0.3s; }
+
+  /* QUIZ */
+  #quiz-section { display: none; }
+  .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 8px; }
+  .quiz-score { font-size: 1rem; color: #6b4f3a; }
+  .timer { background: #3a2e28; color: #f5f0eb; padding: 6px 16px; border-radius: 16px; font-size: 0.9rem; }
+  .timer.urgent { background: #c0392b; }
+  .question-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 24px #3a2e2815;
+    margin-bottom: 20px;
+  }
+  .question-num { font-size: 0.75rem; color: #d4a96a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .question-text { font-size: 1.1rem; line-height: 1.5; margin-bottom: 20px; }
+  .options { display: grid; gap: 10px; }
+  .option-btn {
+    background: #f5f0eb;
+    border: 2px solid #e0d5cc;
+    border-radius: 10px;
+    padding: 12px 18px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+    color: #3a2e28;
+  }
+  .option-btn:hover:not(:disabled) { border-color: #d4a96a; background: #fff8f0; }
+  .option-btn.correct { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
+  .option-btn.wrong { background: #ffebee; border-color: #e57373; color: #c62828; }
+  .option-btn:disabled { cursor: default; }
+  .feedback { font-size: 0.85rem; margin-top: 12px; padding: 10px 14px; border-radius: 8px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: #e8f5e9; color: #2e7d32; }
+  .feedback.wrong { background: #ffebee; color: #c62828; }
+  .next-btn {
+    background: #d4a96a;
+    color: #fff;
+    border: none;
+    padding: 11px 32px;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-top: 16px;
+    display: none;
+  }
+  .next-btn.show { display: inline-block; }
+  .results-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 36px;
+    text-align: center;
+    box-shadow: 0 4px 24px #3a2e2815;
+    display: none;
+  }
+  .results-card.show { display: block; }
+  .results-score { font-size: 3rem; font-weight: bold; color: #d4a96a; margin: 16px 0; }
+  .results-msg { font-size: 1rem; color: #6b4f3a; margin-bottom: 24px; }
+  .restart-btn {
+    background: #3a2e28;
+    color: #f5f0eb;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 500px) {
+    .card-front .term { font-size: 1.4rem; }
+    .mode-btns { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span>🧵</span>
+  <div>
+    <h1>Formation Textile — Chemitex</h1>
+    <div style="font-size:0.8rem;opacity:0.7;margin-top:4px;">Flashcards & Quiz · 42 termes essentiels FR/EN</div>
+  </div>
+</header>
+
+<nav id="category-nav">
+  <button class="active" onclick="selectCategory(0)">🌿 Fibres naturelles</button>
+  <button onclick="selectCategory(1)">🧪 Fibres artificielles</button>
+  <button onclick="selectCategory(2)">⚗️ Fibres synthétiques</button>
+  <button onclick="selectCategory(3)">⊞ Tissage</button>
+  <button onclick="selectCategory(4)">ᯓ Tricot</button>
+  <button onclick="selectCategory(5)">✨ Finitions</button>
+</nav>
+
+<div class="mode-btns">
+  <button class="mode-btn active" onclick="setMode('flash')">🃏 Flashcards</button>
+  <button class="mode-btn" onclick="setMode('quiz')">📝 Quiz</button>
+</div>
+
+<div class="container">
+
+  <!-- FLASHCARDS -->
+  <div id="flashcard-section">
+    <div class="card-counter" id="card-counter">Carte 1 / 10</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:10%"></div></div>
+    <div class="flashcard-wrap" onclick="flipCard()">
+      <div class="flashcard" id="flashcard">
+        <div class="card-face card-front">
+          <div class="term" id="card-term">Coton</div>
+          <div class="en" id="card-en">Cotton</div>
+          <div class="hint">Cliquez pour retourner</div>
+        </div>
+        <div class="card-face card-back">
+          <div class="def" id="card-def">Fibre végétale douce et respirante. La plus utilisée au monde.</div>
+          <div class="cat" id="card-cat">🌿 Végétale</div>
+        </div>
+      </div>
+    </div>
+    <button class="flip-btn" onclick="flipCard()">↩ Retourner</button>
+    <div class="card-nav">
+      <button onclick="prevCard()">← Précédente</button>
+      <button onclick="nextCard()">Suivante →</button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz-section">
+    <div class="quiz-header">
+      <div class="quiz-score" id="quiz-score">Score : 0 / 0</div>
+      <div class="timer" id="timer">⏱ 20s</div>
+    </div>
+    <div class="question-card" id="question-card">
+      <div class="question-num" id="q-num">Question 1 / 10</div>
+      <div class="question-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">Question suivante →</button>
+    </div>
+    <div class="results-card" id="results-card">
+      <div style="font-size:2rem">🎉</div>
+      <div style="font-size:1.2rem;margin-top:8px">Quiz terminé !</div>
+      <div class="results-score" id="results-score">8 / 10</div>
+      <div class="results-msg" id="results-msg"></div>
+      <button class="restart-btn" onclick="startQuiz()">🔄 Recommencer</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const data = {
+  0: [
+    { fr:"Coton", en:"Cotton", def:"Fibre végétale douce et respirante. La plus utilisée au monde.", cat:"🌿 Végétale" },
+    { fr:"Lin", en:"Linen", def:"Fibre végétale résistante et fraîche. Idéale pour l'été.", cat:"🌿 Végétale" },
+    { fr:"Chanvre", en:"Hemp", def:"Fibre végétale robuste et écologique. Résistante à l'humidité.", cat:"🌿 Végétale" },
+    { fr:"Soie", en:"Silk", def:"Fibre animale issue du ver à soie. Brillante, douce, luxueuse.", cat:"🐛 Animale" },
+    { fr:"Laine", en:"Wool", def:"Fibre animale issue du mouton. Isolante et thermorégulatrice.", cat:"🐑 Animale" },
+    { fr:"Cachemire", en:"Cashmere", def:"Fibre animale issue de la chèvre du Cachemire. Ultra-douce, premium.", cat:"🐐 Animale" },
+    { fr:"Jute", en:"Jute", def:"Fibre végétale grossière. Utilisée pour sacs, emballages, tapis.", cat:"🌿 Végétale" },
+    { fr:"Alpaga", en:"Alpaca", def:"Fibre animale très douce, plus chaude que la laine, hypoallergénique.", cat:"🦙 Animale" },
+    { fr:"Mohair", en:"Mohair", def:"Fibre de chèvre angora. Brillante, légère, très douce.", cat:"🐐 Animale" },
+    { fr:"Angora", en:"Angora", def:"Fibre du lapin angora. Extrêmement douce et légère.", cat:"🐇 Animale" }
+  ],
+  1: [
+    { fr:"Viscose", en:"Viscose", def:"Fibre régénérée à base de cellulose de bois. Douce et fluide.", cat:"🧪 Régénérée" },
+    { fr:"Modal", en:"Modal", def:"Viscose améliorée, plus résistante et douce. Souvent mélangée au coton.", cat:"🧪 Régénérée" },
+    { fr:"Lyocell", en:"Lyocell", def:"Fibre régénérée écologique (procédé en circuit fermé). Marque : Tencel.", cat:"🧪 Régénérée" },
+    { fr:"Acétate", en:"Acetate", def:"Dérivé de la cellulose. Aspect soyeux, utilisé en doublures.", cat:"🧪 Semi-synthétique" },
+    { fr:"Cupro", en:"Cupro", def:"Fibre régénérée issue de linters de coton. Très fluide, toucher soie.", cat:"🧪 Régénérée" },
+    { fr:"Rayonne", en:"Rayon", def:"Terme générique pour les fibres cellulosiques régénérées.", cat:"🧪 Régénérée" }
+  ],
+  2: [
+    { fr:"Polyester", en:"Polyester", def:"Fibre synthétique la plus produite. Résistante, infroissable, séchage rapide.", cat:"⚗️ Synthétique" },
+    { fr:"Polyamide", en:"Nylon", def:"Fibre synthétique solide et élastique. Utilisée en collants, maillots.", cat:"⚗️ Synthétique" },
+    { fr:"Acrylique", en:"Acrylic", def:"Imite la laine. Légère, chaude, facile d'entretien.", cat:"⚗️ Synthétique" },
+    { fr:"Élasthanne", en:"Elastane", def:"Fibre ultra-extensible (Lycra, Spandex). Apporte le stretch aux tissus.", cat:"⚗️ Synthétique" },
+    { fr:"Polypropylène", en:"Polypropylene", def:"Fibre synthétique très légère, imperméable. Sport et outdoor.", cat:"⚗️ Synthétique" },
+    { fr:"PTT", en:"PTT", def:"Polytriméthylène téréphtalate. Fibre douce, élastique, anti-froissage.", cat:"⚗️ Synthétique" }
+  ],
+  3: [
+    { fr:"Toile", en:"Plain weave", def:"Armure la plus simple : fils croisés un sur un. Ex : popeline, mousseline.", cat:"⊞ Armure" },
+    { fr:"Sergé", en:"Twill", def:"Diagonale visible en surface. Résistant. Ex : denim, gabardine.", cat:"⊞ Armure" },
+    { fr:"Satin", en:"Satin", def:"Surface lisse et brillante. Fils de chaîne flottants. Ex : doublures.", cat:"⊞ Armure" },
+    { fr:"Dobby", en:"Dobby", def:"Petits motifs géométriques tissés. Plus complexe que la toile.", cat:"⊞ Armure" },
+    { fr:"Jacquard", en:"Jacquard", def:"Motifs complexes tissés directement dans l'armure. Ex : brocart, damassé.", cat:"⊞ Armure" },
+    { fr:"Velours", en:"Velvet", def:"Surface avec poils coupés, toucher doux et velouté.", cat:"⊞ Tissage" },
+    { fr:"Gaze", en:"Gauze", def:"Tissu léger et aéré, armure croisée. Utilisé en médical et mode.", cat:"⊞ Tissage" },
+    { fr:"Crépon", en:"Crêpe", def:"Surface granuleuse obtenue par torsion des fils. Tombe bien.", cat:"⊞ Tissage" }
+  ],
+  4: [
+    { fr:"Jersey", en:"Jersey", def:"Tricot simple face, très extensible. Le plus courant (t-shirts).", cat:"ᯓ Tricot" },
+    { fr:"Côtes", en:"Rib", def:"Alternance de colonnes en relief. Très élastique, utilisé en bordures.", cat:"ᯓ Tricot" },
+    { fr:"Interlock", en:"Interlock", def:"Double jersey, plus épais et stable. Moins extensible que le jersey.", cat:"ᯓ Tricot" },
+    { fr:"Point mousse", en:"Garter stitch", def:"Tricot identique sur les deux faces. Épais, utilisé en pulls.", cat:"ᯓ Tricot" },
+    { fr:"Molleton", en:"Fleece", def:"Tricot gratté sur l'envers. Chaud et doux. Ex : sweats.", cat:"ᯓ Tricot" },
+    { fr:"Piqué", en:"Piqué", def:"Surface en relief avec effet grains de riz. Ex : polos.", cat:"ᯓ Tricot" }
+  ],
+  5: [
+    { fr:"Teinture", en:"Dyeing", def:"Application de couleur sur fibre, fil ou tissu.", cat:"✨ Finition" },
+    { fr:"Impression", en:"Printing", def:"Dépôt de motifs colorés en surface. Ex : sérigraphie, numérique.", cat:"✨ Finition" },
+    { fr:"Blanchiment", en:"Bleaching", def:"Traitement chimique pour blanchir ou préparer la teinture.", cat:"✨ Finition" },
+    { fr:"Brossage", en:"Brushing", def:"Traitement mécanique qui crée un effet duveteux en surface.", cat:"✨ Finition" },
+    { fr:"Mercerisage", en:"Mercerizing", def:"Traitement soude caustique sur coton → brillance et résistance accrues.", cat:"✨ Finition" },
+    { fr:"Traitement", en:"Finishing", def:"Terme générique pour tout traitement final : déperlant, anti-froissage, etc.", cat:"✨ Finition" }
+  ]
+};
+
+let currentCat = 0;
+let currentIndex = 0;
+let isFlipped = false;
+let currentMode = 'flash';
+
+// Quiz state
+let quizCards = [];
+let quizIndex = 0;
+let quizScore = 0;
+let timerInterval = null;
+let timeLeft = 20;
+let answered = false;
+
+function selectCategory(cat) {
+  currentCat = cat;
+  currentIndex = 0;
+  isFlipped = false;
+  document.querySelectorAll('#category-nav button').forEach((b,i) => b.classList.toggle('active', i===cat));
+  if (currentMode === 'flash') updateCard();
+  else startQuiz();
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&mode==='flash')||(i===1&&mode==='quiz')));
+  document.getElementById('flashcard-section').style.display = mode==='flash' ? 'block' : 'none';
+  document.getElementById('quiz-section').style.display = mode==='quiz' ? 'block' : 'none';
+  if (mode==='flash') updateCard();
+  else startQuiz();
+}
+
+function updateCard() {
+  const cards = data[currentCat];
+  const card = cards[currentIndex];
+  isFlipped = false;
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('card-term').textContent = card.fr;
+  document.getElementById('card-en').textContent = card.en;
+  document.getElementById('card-def').textContent = card.def;
+  document.getElementById('card-cat').textContent = card.cat;
+  document.getElementById('card-counter').textContent = `Carte ${currentIndex+1} / ${cards.length}`;
+  document.getElementById('progress-fill').style.width = `${((currentIndex+1)/cards.length)*100}%`;
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('flashcard').classList.toggle('flipped', isFlipped);
+}
+
+function nextCard() {
+  const cards = data[currentCat];
+  currentIndex = (currentIndex + 1) % cards.length;
+  updateCard();
+}
+
+function prevCard() {
+  const cards = data[currentCat];
+  currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+  updateCard();
+}
+
+// QUIZ
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function startQuiz() {
+  const allCards = data[currentCat];
+  quizCards = shuffle(allCards);
+  quizIndex = 0; quizScore = 0; answered = false;
+  document.getElementById('results-card').classList.remove('show');
+  document.getElementById('question-card').style.display = 'block';
+  showQuestion();
+}
+
+function showQuestion() {
+  if (quizIndex >= quizCards.length) { showResults(); return; }
+  answered = false;
+  const card = quizCards[quizIndex];
+  document.getElementById('q-num').textContent = `Question ${quizIndex+1} / ${quizCards.length}`;
+  document.getElementById('q-text').textContent = `Quelle est la définition de "${card.fr}" (${card.en}) ?`;
+  document.getElementById('quiz-score').textContent = `Score : ${quizScore} / ${quizIndex}`;
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('next-btn').className = 'next-btn';
+
+  // Options : 1 bonne + 3 fausses
+  const others = shuffle(data[currentCat].filter(c => c.fr !== card.fr)).slice(0, 3);
+  const options = shuffle([card, ...others]);
+  const container = document.getElementById('options');
+  container.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt.def;
+    btn.onclick = () => checkAnswer(btn, opt.fr === card.fr, card.def);
+    container.appendChild(btn);
+  });
+
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = 20;
+  updateTimer();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+    if (timeLeft <= 0) { clearInterval(timerInterval); timeUp(); }
+  }, 1000);
+}
+
+function updateTimer() {
+  const el = document.getElementById('timer');
+  el.textContent = `⏱ ${timeLeft}s`;
+  el.classList.toggle('urgent', timeLeft <= 5);
+}
+
+function timeUp() {
+  if (answered) return;
+  answered = true;
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  const fb = document.getElementById('feedback');
+  fb.textContent = `⏰ Temps écoulé ! Réponse : ${quizCards[quizIndex].def}`;
+  fb.className = 'feedback wrong show';
+  document.getElementById('next-btn').className = 'next-btn show';
+}
+
+function checkAnswer(btn, isCorrect, correctDef) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  if (isCorrect) {
+    btn.classList.add('correct');
+    quizScore++;
+    const fb = document.getElementById('feedback');
+    fb.textContent = '✅ Bonne réponse !';
+    fb.className = 'feedback correct show';
+  } else {
+    btn.classList.add('wrong');
+    const fb = document.getElementById('feedback');
+    fb.textContent = `❌ Réponse correcte : ${correctDef}`;
+    fb.className = 'feedback wrong show';
+    // Highlight correct
+    document.querySelectorAll('.option-btn').forEach(b => {
+      if (b.textContent === correctDef) b.classList.add('correct');
+    });
+  }
+  document.getElementById('next-btn').className = 'next-btn show';
+}
+
+function nextQuestion() {
+  quizIndex++;
+  showQuestion();
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+  document.getElementById('question-card').style.display = 'none';
+  const total = quizCards.length;
+  const pct = Math.round((quizScore/total)*100);
+  document.getElementById('results-score').textContent = `${quizScore} / ${total}`;
+  let msg = pct >= 80 ? '🌟 Excellent ! Tu maîtrises ce thème.' : pct >= 60 ? '👍 Bien ! Encore quelques révisions.' : '💪 Continue, tu vas y arriver !';
+  document.getElementById('results-msg').textContent = msg;
+  document.getElementById('results-card').classList.add('show');
+  document.getElementById('quiz-score').textContent = `Score final : ${quizScore} / ${total}`;
+}
+
+updateCard();
+</script>
+</body>
+</html>
